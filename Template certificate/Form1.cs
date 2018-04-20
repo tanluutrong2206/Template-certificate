@@ -1,9 +1,12 @@
-﻿using System;
+﻿using SelectPdf;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.OleDb;
+using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,6 +20,8 @@ namespace Template_certificate
         private string Excel03ConString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties='Excel 8.0;HDR=YES'";
         private string Excel07ConString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties='Excel 12.0;HDR=YES'";
         private CheckBox headerCheckBox = new CheckBox();
+        private string connectionString = null;
+
         private enum comparison
         {
             Equal_to,
@@ -76,7 +81,11 @@ namespace Template_certificate
             }
             setDataSource(field1, headers);
             setDataSource(field2, headers);
+            field2.Enabled = false;
+            field2.SelectedIndex = -1;
             setDataSource(field3, headers);
+            field3.Enabled = false;
+            field3.SelectedIndex = -1;
 
         }
 
@@ -89,7 +98,6 @@ namespace Template_certificate
         private void displayExcelContentToGridView(string fileName)
         {
             dataGridView1.DataSource = null;
-            string connectionString = null;
             if (Path.GetExtension(fileName).Equals(".xls"))
             {
                 //excel old version. Before 2007
@@ -101,26 +109,8 @@ namespace Template_certificate
             }
             try
             {
-                using (OleDbConnection con = new OleDbConnection(connectionString))
-                {
-                    using (OleDbCommand cmd = new OleDbCommand())
-                    {
-                        using (OleDbDataAdapter oda = new OleDbDataAdapter())
-                        {
-                            DataTable dt = new DataTable();
-                            cmd.CommandText = "SELECT * From [Sheet1$]";
-                            cmd.Connection = con;
-                            con.Open();
-                            oda.SelectCommand = cmd;
-                            oda.Fill(dt);
-                            con.Close();
+                setDataSourceForGridView("SELECT * From [Sheet1$]");
 
-                            //Populate DataGridView.
-                            dataGridView1.DataSource = dt;
-                        }
-                    }
-                }
-            
                 //add check box column to data grid view
                 //Add a CheckBox Column to the DataGridView Header Cell.
 
@@ -129,7 +119,7 @@ namespace Template_certificate
 
                 //Place the Header CheckBox in the Location of the Header Cell.
                 headerCheckBox.Location = new Point(headerCellLocation.X + 8, headerCellLocation.Y + 2);
-                headerCheckBox.BackColor = Color.White;
+                headerCheckBox.BackColor = System.Drawing.Color.White;
                 headerCheckBox.Size = new Size(18, 18);
 
                 //Assign Click event to the Header CheckBox.
@@ -152,6 +142,36 @@ namespace Template_certificate
                 MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
+        }
+
+        private void setDataSourceForGridView(string query)
+        {
+            try
+            {
+                using (OleDbConnection con = new OleDbConnection(connectionString))
+                {
+                    using (OleDbCommand cmd = new OleDbCommand())
+                    {
+                        using (OleDbDataAdapter oda = new OleDbDataAdapter())
+                        {
+                            DataTable dt = new DataTable();
+                            cmd.CommandText = query;
+                            cmd.Connection = con;
+                            con.Open();
+                            oda.SelectCommand = cmd;
+                            oda.Fill(dt);
+                            con.Close();
+
+                            //Populate DataGridView.
+                            dataGridView1.DataSource = dt;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Something went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void HeaderCheckBox_Clicked(object sender, EventArgs e)
@@ -217,8 +237,6 @@ namespace Template_certificate
         private void resetFilterBtn_Click(object sender, EventArgs e)
         {
             field1.SelectedIndex = 0;
-            field2.SelectedIndex = 0;
-            field3.SelectedIndex = 0;
 
             resetCombobox(and_orCbx1);
             resetCombobox(and_orCbx2);
@@ -245,20 +263,32 @@ namespace Template_certificate
 
         private void filterBtn_Click(object sender, EventArgs e)
         {
+            string query = "";
             //get the data to sort
-
-            queryCondition += getSortData(field1, comparison1, compare1) + " ";
-            if (field2.Enabled && comparison2.Enabled)
+            if (field1.SelectedIndex == 0)
             {
-
-                queryCondition += getSortData(field2, comparison2, compare2);
+                //user want to show all
+                query = "SELECT * From [Sheet1$]";
             }
-            if (field3.Enabled && comparison3.Enabled)
+            else
             {
-                queryCondition += getSortData(field3, comparison3, compare3);
+                queryCondition += getSortData(field1, comparison1, compare1) + " ";
+                if (field2.Enabled && comparison2.Enabled)
+                {
+                    queryCondition += and_orCbx1.SelectedItem + " ";
+                    queryCondition += getSortData(field2, comparison2, compare2);
+                }
+                if (field3.Enabled && comparison3.Enabled)
+                {
+                    queryCondition += and_orCbx2.SelectedItem + " ";
+                    queryCondition += getSortData(field3, comparison3, compare3);
+                }
+                query = $"SELECT * From [Sheet1$] where {queryCondition}";
             }
+            MessageBox.Show(query);
+            setDataSourceForGridView(query);
+
             //reset all field to default
-            MessageBox.Show(queryCondition);
             resetFilterBtn_Click(null, null);
             queryCondition = "";
         }
@@ -269,7 +299,7 @@ namespace Template_certificate
             string compareTxt = compare.Text.Trim();
             if (field.SelectedItem != null)
             {
-                query += field.SelectedItem;
+                query += $"[{field.SelectedItem}] ";
                 switch (comparisonCbx.SelectedIndex)
                 {
                     case (int)comparison.Contains:
@@ -284,7 +314,7 @@ namespace Template_certificate
                         }
                     case (int)comparison.Equal_to:
                         {
-                            query += $" = '{compareTxt}' ";
+                            query += $" = {compareTxt}";
                             break;
                         }
                     case (int)comparison.Greater_than:
@@ -375,10 +405,11 @@ namespace Template_certificate
 
         private void field1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (field1.SelectedIndex != 0)
+            if (field1.SelectedIndex > 0)
             {
                 compare1.Enabled = true;
                 comparison1.Enabled = true;
+                comparison1.SelectedIndex = 0;
                 and_orCbx1.Enabled = true;
                 and_orCbx1.SelectedIndex = 0;
             }
@@ -393,10 +424,12 @@ namespace Template_certificate
 
         private void field2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (field2.SelectedIndex != 0)
+            if (field2.SelectedIndex > 0)
             {
                 compare2.Enabled = true;
                 comparison2.Enabled = true;
+                comparison2.SelectedIndex = 0;
+
                 and_orCbx2.Enabled = true;
                 and_orCbx2.SelectedIndex = 0;
             }
@@ -411,10 +444,12 @@ namespace Template_certificate
 
         private void field3_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (field3.SelectedIndex != 0)
+            if (field3.SelectedIndex > 0)
             {
                 compare3.Enabled = true;
                 comparison3.Enabled = true;
+                comparison3.SelectedIndex = 0;
+
             }
             else
             {
@@ -451,17 +486,85 @@ namespace Template_certificate
                         }
                 }
             }
+            else
+            {
+                switch (comboBox.Name)
+                {
+                    case "comparison1":
+                        {
+                            compare1.Enabled = true;
+                            break;
+                        }
+                    case "comparison2":
+                        {
+                            compare2.Enabled = true;
+                            break;
+                        }
+                    default:
+                        {
+                            compare3.Enabled = true;
+                            break;
+                        }
+                }
+            }
         }
 
         private void and_orCbx1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            field2.Enabled = true;
+            if (and_orCbx1.SelectedIndex >= 0)
+            {
+                field2.Enabled = true;
+                field2.SelectedIndex = 0;
+            }
+            else
+            {
+                field2.Enabled = false;
+                field2.SelectedIndex = -1;
+            }
         }
 
         private void and_orCbx2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            field3.Enabled = true;
-
+            if (and_orCbx2.SelectedIndex >= 0)
+            {
+                field3.Enabled = true;
+                field3.SelectedIndex = 0;
+            }
+            else
+            {
+                field3.Enabled = false;
+                field3.SelectedIndex = -1;
+            }
         }
+
+        private void cancelBtn_Click(object sender, EventArgs e)
+        {
+            string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
+
+            SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
+
+            // define a rendering result object
+            converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
+            converter.Options.PdfPageSize = PdfPageSize.A4;
+            converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
+            PdfDocument doc = converter.ConvertUrl("E:/Funix/Template certificate/certificate template.html");
+
+            doc.Save(filename);
+            doc.Close();
+            Process.Start(filename);
+            this.Close();
+        }
+
+        private void renderPdfBtn_Click(object sender, EventArgs e)
+        {
+            
+
+            //init content to document
+
+            //save the document
+
+            //start a viewer
+        }
+
     }
 }
