@@ -110,7 +110,7 @@
             this.chooseFolder.Name = "chooseFolder";
             this.chooseFolder.Size = new System.Drawing.Size(123, 23);
             this.chooseFolder.TabIndex = 3;
-            this.chooseFolder.Text = "Choose folder rename";
+            this.chooseFolder.Text = "Choose folder storage";
             this.chooseFolder.UseVisualStyleBackColor = true;
             this.chooseFolder.Click += new System.EventHandler(this.chooseFolder_Click);
             // 

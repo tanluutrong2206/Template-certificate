@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,7 @@ namespace Template_certificate
         private string Excel07ConString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties='Excel 12.0;HDR=YES'";
         private CheckBox headerCheckBox = new CheckBox();
         private string connectionString = null;
+        private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
 
         private enum comparison
         {
@@ -66,6 +68,10 @@ namespace Template_certificate
                 displayHeaderToCbx(openFileDialog1.FileName);
 
                 groupBox1.Enabled = true;
+
+                //auto selected all row
+                headerCheckBox.Checked = true;
+                HeaderCheckBox_Clicked(null, null);
             }
         }
 
@@ -190,14 +196,13 @@ namespace Template_certificate
 
         private void DataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-
             //Check to ensure that the row CheckBox is clicked.
             if (e.RowIndex >= 0 && e.ColumnIndex == 0)
             {
                 DataGridViewCheckBoxCell boxCell = dataGridView1.Rows[e.RowIndex].Cells["checkBoxColumn"] as DataGridViewCheckBoxCell;
                 boxCell.Value = !Convert.ToBoolean(boxCell.Value);
-                //Loop to verify whether all row CheckBoxes are checked or not.
 
+                //Loop to verify whether all row CheckBoxes are checked or not.
                 bool isChecked = true;
                 foreach (DataGridViewRow row in dataGridView1.Rows)
                 {
@@ -214,18 +219,11 @@ namespace Template_certificate
 
         private void chooseFolder_Click(object sender, EventArgs e)
         {
-            //init setting for user can only choosing excel file
-            folderBrowserDialog1.ShowNewFolderButton = false;
-
-
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
-                //user selected file
-                //set file name to text box
+                //user selected folder
+                //set folder path to text box
                 folderPath.Text = folderBrowserDialog1.SelectedPath;
-
-                //display file content in grid view
-                //displayExcelContentToGridView(openFileDialog1.FileName);
             }
         }
 
@@ -539,32 +537,79 @@ namespace Template_certificate
 
         private void cancelBtn_Click(object sender, EventArgs e)
         {
-            string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
 
-            SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-
-            // define a rendering result object
-            converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
-            converter.Options.PdfPageSize = PdfPageSize.A4;
-            converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
-            PdfDocument doc = converter.ConvertUrl("E:/Funix/Template certificate/certificate template.html");
-
-            doc.Save(filename);
-            doc.Close();
-            Process.Start(filename);
             this.Close();
         }
 
         private void renderPdfBtn_Click(object sender, EventArgs e)
         {
-            
+            //MessageBox.Show(dataGridView1.Columns[9].Name + "a");
+            string folderStoragePath = folderPath.Text;
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                //check if row has checked in check box
+                if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value))
+                {
+                    //render this row to pdf
+                    string studentName = row.Cells["Họ và tên"].Value.ToString();
+                    string studentId = row.Cells["Mã sinh viên"].Value.ToString();
 
-            //init content to document
+                    DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
+                    string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
-            //save the document
+                    string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim().Replace("Chứng chỉ ", "").Trim();
+                    ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
 
-            //start a viewer
+                    string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
+                    string ccNumber = row.Cells["Số CC"].Value.ToString();
+                    //MessageBox.Show(finishedDate);
+                    GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath);
+                }
+            }
+            Process.Start(folderStoragePath);
+
         }
 
+        private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath)
+        {
+            try
+            {
+                string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
+                //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
+                string fileName = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
+
+                string html = string.Format(contentHtml, parameters);
+                // define a rendering result object
+                SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
+
+                //setting up rendering
+                converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
+                converter.Options.PdfPageSize = PdfPageSize.A4;
+                converter.Options.DrawBackground = true;
+                converter.Options.EmbedFonts = true;
+                //following margin make content in center of page
+
+                //white out line very thin
+                //converter.Options.MarginLeft = -15;
+                //converter.Options.MarginRight = -15;
+                //converter.Options.MarginTop = -5;
+
+                //white outline half of cm
+                converter.Options.MarginLeft = -7;
+                converter.Options.MarginRight = -10;
+
+                converter.Options.AutoFitHeight = HtmlToPdfPageFitMode.AutoFit;
+                converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
+
+                PdfDocument doc = converter.ConvertHtmlString(html);
+
+                doc.Save(fileName);
+                doc.Close();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Some things went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }
