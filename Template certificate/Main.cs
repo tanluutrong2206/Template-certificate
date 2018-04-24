@@ -16,7 +16,7 @@ using System.Windows.Forms;
 
 namespace Template_certificate
 {
-    public partial class Form1 : Form
+    public partial class Main : Form
     {
         private string Excel03ConString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties='Excel 8.0;HDR=YES'";
         private string Excel07ConString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties='Excel 12.0;HDR=YES'";
@@ -39,7 +39,7 @@ namespace Template_certificate
         }
         private string queryCondition = "";
 
-        public Form1()
+        public Main()
         {
             InitializeComponent();
             groupBox1.Enabled = false;
@@ -537,19 +537,23 @@ namespace Template_certificate
 
         private void cancelBtn_Click(object sender, EventArgs e)
         {
-
-            this.Close();
+            Main dialog = new Main();
+            dialog.Show();
+            //this.Close();
         }
 
         private void renderPdfBtn_Click(object sender, EventArgs e)
         {
-            //MessageBox.Show(dataGridView1.Columns[9].Name + "a");
+
             string folderStoragePath = folderPath.Text;
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
+
+                int count = 0;
                 //check if row has checked in check box
                 if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value))
                 {
+                    
                     //render this row to pdf
                     string studentName = row.Cells["Họ và tên"].Value.ToString();
                     string studentId = row.Cells["Mã sinh viên"].Value.ToString();
@@ -562,10 +566,11 @@ namespace Template_certificate
 
                     string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                     string ccNumber = row.Cells["Số CC"].Value.ToString();
-                    //MessageBox.Show(finishedDate);
                     GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath);
+                    count++;
                 }
             }
+            MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Process.Start(folderStoragePath);
 
         }
