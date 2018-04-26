@@ -23,6 +23,7 @@ namespace Template_certificate
         private CheckBox headerCheckBox = new CheckBox();
         private string connectionString = null;
         private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
+        private bool selectedFolder = false, selectedFile = false;
 
         private enum comparison
         {
@@ -68,7 +69,12 @@ namespace Template_certificate
                 displayHeaderToCbx(openFileDialog1.FileName);
 
                 groupBox1.Enabled = true;
+                selectedFile = true;
 
+                if (selectedFolder && selectedFile)
+                {
+                    renderPdfBtn.Enabled = true;
+                }
                 //auto selected all row
                 headerCheckBox.Checked = true;
                 HeaderCheckBox_Clicked(null, null);
@@ -224,6 +230,11 @@ namespace Template_certificate
                 //user selected folder
                 //set folder path to text box
                 folderPath.Text = folderBrowserDialog1.SelectedPath;
+                selectedFolder = true;
+                if (selectedFolder && selectedFile)
+                {
+                    renderPdfBtn.Enabled = true;
+                }
             }
         }
 
@@ -283,11 +294,7 @@ namespace Template_certificate
                 }
                 query = $"SELECT * From [Sheet1$] where {queryCondition}";
             }
-            MessageBox.Show(query);
             setDataSourceForGridView(query);
-
-            //reset all field to default
-            resetFilterBtn_Click(null, null);
             queryCondition = "";
         }
 
@@ -537,7 +544,6 @@ namespace Template_certificate
 
         private void cancelBtn_Click(object sender, EventArgs e)
         {
-
             this.Close();
         }
 

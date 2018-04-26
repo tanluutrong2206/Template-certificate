@@ -331,6 +331,7 @@
             // 
             // renderPdfBtn
             // 
+            this.renderPdfBtn.Enabled = false;
             this.renderPdfBtn.Location = new System.Drawing.Point(295, 454);
             this.renderPdfBtn.Name = "renderPdfBtn";
             this.renderPdfBtn.Size = new System.Drawing.Size(76, 23);

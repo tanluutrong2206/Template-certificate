@@ -59,16 +59,17 @@ namespace Template_certificate
 
         private void cancelAsyncButton_Click(object sender, EventArgs e)
         {
-            if (resultLabel.Text.Contains("Error") 
+            if (resultLabel.Text.Contains("Error")
                 || resultLabel.Text.Contains("Done")
                 || resultLabel.Text.Contains("Canceled"))
             {
                 this.Dispose();
             }
-            else if (backgroundWorker1.WorkerSupportsCancellation == true)
+            else if (backgroundWorker1.WorkerSupportsCancellation)
             {
                 // Cancel the asynchronous operation.
                 backgroundWorker1.CancelAsync();
+                button1.Enabled = false;
             }
         }
 
@@ -80,11 +81,9 @@ namespace Template_certificate
             int count = 0;
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
-
                 //check if row has checked in check box
-                if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value))
+                if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value) && backgroundWorker1.WorkerSupportsCancellation)
                 {
-
                     //render this row to pdf
                     string studentName = row.Cells["Họ và tên"].Value.ToString();
                     string studentId = row.Cells["Mã sinh viên"].Value.ToString();
@@ -97,7 +96,7 @@ namespace Template_certificate
 
                     string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                     string ccNumber = row.Cells["Số CC"].Value.ToString();
-                    GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath);
+                    GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath, e);
                     count++;
                     worker.ReportProgress(count);
                 }
@@ -132,8 +131,13 @@ namespace Template_certificate
             }
         }
 
-        private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath)
+        private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, DoWorkEventArgs ev)
         {
+            if (backgroundWorker1.CancellationPending)
+            {
+                ev.Cancel = true;
+            }
+            else
             try
             {
                 string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
@@ -173,8 +177,6 @@ namespace Template_certificate
                 MessageBox.Show(e.Message, "Some things went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
     }
-
 }
 
