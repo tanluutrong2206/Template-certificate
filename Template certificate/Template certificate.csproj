@@ -154,6 +154,12 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Driver\AccessDatabaseEngine.exe" />
+    <Content Include="Html source\certificate template.html" />
+    <Content Include="Html source\mystyle.css" />
+    <Content Include="Images\background.png" />
+    <Content Include="Images\Funix director sign.png" />
+    <Content Include="Images\funix logo.png" />
     <Content Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,0 +1,94 @@
+
+.content {
+    font-family: roboto;
+    text-align: center;
+    padding-top: 190px;
+}
+
+.vn-txt {
+    font-size: 18px;
+    font-family: 'Roboto Regular';
+}
+
+.en-txt {
+    font-size: 14px;
+    font-family: 'Roboto Light';
+}
+
+#full-name {
+    font-size: 46px;
+    font-family: 'Times New Roman';
+    font-weight: 600;
+    line-height: 75px;
+}
+
+
+.all-content {
+    background-image: url('file:///C:/Generate certificate/Images/background.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    font-family: roboto;
+    /* width: 75%;	 */
+    padding: 10px 0;
+    margin: auto;
+}
+
+.logo-img {
+    padding-top: 90px;
+    float: right;
+    padding-right: 165px;
+    width: 131px;
+    height: 50px;
+}
+
+#cc-vn {
+    color: #3E003F;
+    font-size: 23px;
+    font-weight: bold;
+    padding-top: 10px;
+    font-family: 'Roboto Regular';
+}
+
+#cc-en {
+    color: gray;
+    font-size: 23px;
+    font-weight: bold;
+    font-family: 'Roboto Regular';
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    /* do not change */
+    padding-top: 49px;
+}
+
+.float-left {
+    font-size: 8px;
+    margin-left: 50px;
+    margin-top: 40px;
+    font-family: 'Roboto Light';
+    font-weight: lighter;
+}
+
+.sign-img {
+    width: 157px;
+    height: 75px;
+}
+
+.float-right {
+    padding-right: 52px;
+    margin-top: -10px;
+}
+
+h4 {
+    font-family: 'Roboto Bold';
+    /* font-weight: bolder; */
+    line-height: 0px;
+    font-size: 10px;
+}
+
+.director {
+    margin-top: -11px;
+    text-align: center;
+}
