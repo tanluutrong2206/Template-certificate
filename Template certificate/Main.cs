@@ -537,42 +537,28 @@ namespace Template_certificate
 
         private void cancelBtn_Click(object sender, EventArgs e)
         {
-            Main dialog = new Main();
-            dialog.Show();
-            //this.Close();
+
+            this.Close();
+        }
+
+        internal string GetFolderPath()
+        {
+            return folderPath.Text;
+        }
+
+        internal DataGridView GetDataGridView()
+        {
+            return dataGridView1;
         }
 
         private void renderPdfBtn_Click(object sender, EventArgs e)
+        //public void renderPdfBtn_Click(int n, BackgroundWorker worker, DoWorkEventArgs e)
         {
 
             string folderStoragePath = folderPath.Text;
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-            {
-
-                int count = 0;
-                //check if row has checked in check box
-                if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value))
-                {
-                    
-                    //render this row to pdf
-                    string studentName = row.Cells["Họ và tên"].Value.ToString();
-                    string studentId = row.Cells["Mã sinh viên"].Value.ToString();
-
-                    DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
-                    string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
-
-                    string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim().Replace("Chứng chỉ ", "").Trim();
-                    ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
-
-                    string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
-                    string ccNumber = row.Cells["Số CC"].Value.ToString();
-                    GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath);
-                    count++;
-                }
-            }
-            MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            Process.Start(folderStoragePath);
-
+            ProcessDialog dialog = new ProcessDialog(this);
+            dialog.Show();
+            dialog.StartAsync();
         }
 
         private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath)
