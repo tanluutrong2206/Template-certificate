@@ -1,4 +1,7 @@
-﻿using SelectPdf;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using SelectPdf;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Test_upload_file_to_Google_Drive;
 
 namespace Template_certificate
 {
@@ -20,7 +24,38 @@ namespace Template_certificate
         private readonly DataGridView dataGridView1;
         private readonly Main _owner;
         private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
+        private DriveService service;
+        private bool _upload = false;
+        public bool Upload
+        {
+            get
+            {
+                return _upload;
+            }
+            set
+            {
+                if (value)
+                {
+                    Connect connect = new Connect();
+                    UserCredential credential = connect.GetAuthenication();
+
+                    // Create Drive API service.
+                    service = new DriveService(new BaseClientService.Initializer()
+                    {
+                        HttpClientInitializer = credential,
+                        ApplicationName = ApplicationName,
+                    });
+
+                    //set timeout
+                    service.HttpClient.Timeout = TimeSpan.FromMinutes(10);
+                }
+                _upload = value;
+            }
+        }
         private readonly int total;
+        private const string MASTER_FOLDER_NAME = "MindMeister";
+        private string ApplicationName = "Funix's Certificate Generation Automatical";
+
         public ProcessDialog(Main owner)
         {
             InitializeComponent();
@@ -98,6 +133,7 @@ namespace Template_certificate
                     string ccNumber = row.Cells["Số CC"].Value.ToString();
                     GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath, e);
                     count++;
+
                     worker.ReportProgress(count);
                 }
             }
@@ -138,44 +174,77 @@ namespace Template_certificate
                 ev.Cancel = true;
             }
             else
-            try
+                try
+                {
+                    string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
+                    //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
+                    string filePath = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
+
+                    string html = string.Format(contentHtml, parameters);
+                    // define a rendering result object
+                    SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
+
+                    //setting up rendering
+                    converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
+                    converter.Options.PdfPageSize = PdfPageSize.A4;
+                    converter.Options.DrawBackground = true;
+                    converter.Options.EmbedFonts = true;
+                    //following margin make content in center of page
+
+                    //white out line very thin
+                    //converter.Options.MarginLeft = -15;
+                    //converter.Options.MarginRight = -15;
+                    //converter.Options.MarginTop = -5;
+
+                    //white outline half of cm
+                    converter.Options.MarginLeft = -7;
+                    converter.Options.MarginRight = -10;
+
+                    converter.Options.AutoFitHeight = HtmlToPdfPageFitMode.AutoFit;
+                    converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
+
+                    PdfDocument doc = converter.ConvertHtmlString(html);
+
+                    doc.Save(filePath);
+
+                    if (Upload)
+                    {
+                        UploadFileToGoogleDrive(studentName, studentId, ccNumber, filePath, service);
+                    }
+                    doc.Close();
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message, "Some things went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+        }
+
+        private void UploadFileToGoogleDrive(string studentName, string studentId, string ccNumber, string filePath, DriveService service)
+        {
+            Connect connect = new Connect();
+
+            //get list of all folders
+            var files = connect.retrieveAllFolders(service);
+
+            //The pattern of folder name. It is fixed
+            string folderName = $"{studentId}_{studentName}";
+
+            string folderParentId = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME)).Id;
+            //finding folder in list of all folder
+            var folder = files.SingleOrDefault(f => f.Name.Equals(folderName));
+
+            //if folder not created yet. Create new folder
+            string folderId;
+            if (folder == null)
             {
-                string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
-                //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
-                string fileName = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
-
-                string html = string.Format(contentHtml, parameters);
-                // define a rendering result object
-                SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-
-                //setting up rendering
-                converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
-                converter.Options.PdfPageSize = PdfPageSize.A4;
-                converter.Options.DrawBackground = true;
-                converter.Options.EmbedFonts = true;
-                //following margin make content in center of page
-
-                //white out line very thin
-                //converter.Options.MarginLeft = -15;
-                //converter.Options.MarginRight = -15;
-                //converter.Options.MarginTop = -5;
-
-                //white outline half of cm
-                converter.Options.MarginLeft = -7;
-                converter.Options.MarginRight = -10;
-
-                converter.Options.AutoFitHeight = HtmlToPdfPageFitMode.AutoFit;
-                converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
-
-                PdfDocument doc = converter.ConvertHtmlString(html);
-
-                doc.Save(fileName);
-                doc.Close();
+                folderId = connect.CreateNewFolder(folderParentId, service, folderName);
             }
-            catch (Exception e)
+            else
             {
-                MessageBox.Show(e.Message, "Some things went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                folderId = folder.Id;
             }
+
+            connect.CreateNewFile(folderId, service, filePath, $"{studentId}-{ccNumber}-{studentName}.pdf");
         }
     }
 }

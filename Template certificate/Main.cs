@@ -1,4 +1,7 @@
-﻿using SelectPdf;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using SelectPdf;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Test_upload_file_to_Google_Drive;
 
 namespace Template_certificate
 {
@@ -558,55 +562,19 @@ namespace Template_certificate
         }
 
         private void renderPdfBtn_Click(object sender, EventArgs e)
-        //public void renderPdfBtn_Click(int n, BackgroundWorker worker, DoWorkEventArgs e)
         {
-
             string folderStoragePath = folderPath.Text;
             ProcessDialog dialog = new ProcessDialog(this);
             dialog.Show();
             dialog.StartAsync();
         }
 
-        private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath)
+        private void renderAndUploadBtn_Click(object sender, EventArgs e)
         {
-            try
-            {
-                string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
-                //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
-                string fileName = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
-
-                string html = string.Format(contentHtml, parameters);
-                // define a rendering result object
-                SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-
-                //setting up rendering
-                converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
-                converter.Options.PdfPageSize = PdfPageSize.A4;
-                converter.Options.DrawBackground = true;
-                converter.Options.EmbedFonts = true;
-                //following margin make content in center of page
-
-                //white out line very thin
-                //converter.Options.MarginLeft = -15;
-                //converter.Options.MarginRight = -15;
-                //converter.Options.MarginTop = -5;
-
-                //white outline half of cm
-                converter.Options.MarginLeft = -7;
-                converter.Options.MarginRight = -10;
-
-                converter.Options.AutoFitHeight = HtmlToPdfPageFitMode.AutoFit;
-                converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
-
-                PdfDocument doc = converter.ConvertHtmlString(html);
-
-                doc.Save(fileName);
-                doc.Close();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "Some things went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ProcessDialog dialog = new ProcessDialog(this);
+            dialog.Upload = true;
+            dialog.Show();
+            dialog.StartAsync();
         }
     }
 }

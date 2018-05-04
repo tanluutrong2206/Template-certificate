@@ -55,6 +55,7 @@
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.renderPdfBtn = new System.Windows.Forms.Button();
             this.cancelBtn = new System.Windows.Forms.Button();
+            this.renderAndUploadBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -332,17 +333,17 @@
             // renderPdfBtn
             // 
             this.renderPdfBtn.Enabled = false;
-            this.renderPdfBtn.Location = new System.Drawing.Point(295, 454);
+            this.renderPdfBtn.Location = new System.Drawing.Point(247, 454);
             this.renderPdfBtn.Name = "renderPdfBtn";
             this.renderPdfBtn.Size = new System.Drawing.Size(76, 23);
             this.renderPdfBtn.TabIndex = 28;
-            this.renderPdfBtn.Text = "Ok";
+            this.renderPdfBtn.Text = "Generate";
             this.renderPdfBtn.UseVisualStyleBackColor = true;
             this.renderPdfBtn.Click += new System.EventHandler(this.renderPdfBtn_Click);
             // 
             // cancelBtn
             // 
-            this.cancelBtn.Location = new System.Drawing.Point(214, 454);
+            this.cancelBtn.Location = new System.Drawing.Point(166, 454);
             this.cancelBtn.Name = "cancelBtn";
             this.cancelBtn.Size = new System.Drawing.Size(75, 23);
             this.cancelBtn.TabIndex = 27;
@@ -350,11 +351,22 @@
             this.cancelBtn.UseVisualStyleBackColor = true;
             this.cancelBtn.Click += new System.EventHandler(this.cancelBtn_Click);
             // 
+            // renderAndUploadBtn
+            // 
+            this.renderAndUploadBtn.Location = new System.Drawing.Point(329, 454);
+            this.renderAndUploadBtn.Name = "renderAndUploadBtn";
+            this.renderAndUploadBtn.Size = new System.Drawing.Size(116, 23);
+            this.renderAndUploadBtn.TabIndex = 29;
+            this.renderAndUploadBtn.Text = "Generate and upload";
+            this.renderAndUploadBtn.UseVisualStyleBackColor = true;
+            this.renderAndUploadBtn.Click += new System.EventHandler(this.renderAndUploadBtn_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(574, 488);
+            this.Controls.Add(this.renderAndUploadBtn);
             this.Controls.Add(this.renderPdfBtn);
             this.Controls.Add(this.cancelBtn);
             this.Controls.Add(this.groupBox1);
@@ -405,6 +417,7 @@
         private System.Windows.Forms.Button resetFilterBtn;
         private System.Windows.Forms.Button renderPdfBtn;
         private System.Windows.Forms.Button cancelBtn;
+        private System.Windows.Forms.Button renderAndUploadBtn;
     }
 }
 
