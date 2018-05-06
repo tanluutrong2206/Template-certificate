@@ -1,4 +1,5 @@
-﻿using Google.Apis.Auth.OAuth2;
+﻿using Connect_To_MySql;
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using SelectPdf;
@@ -112,7 +113,6 @@ namespace Template_certificate
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
-
             int count = 0;
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
@@ -131,6 +131,7 @@ namespace Template_certificate
 
                     string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                     string ccNumber = row.Cells["Số CC"].Value.ToString();
+
                     GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath, e);
                     count++;
 
@@ -169,6 +170,8 @@ namespace Template_certificate
 
         private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, DoWorkEventArgs ev)
         {
+            CertificateModel certificateModel = new CertificateModel();
+
             if (backgroundWorker1.CancellationPending)
             {
                 ev.Cancel = true;
@@ -209,7 +212,10 @@ namespace Template_certificate
 
                     if (Upload)
                     {
-                        UploadFileToGoogleDrive(studentName, studentId, ccNumber, filePath, service);
+                        string fileId = UploadFileToGoogleDrive(studentName, studentId, ccNumber, filePath, service);
+
+                        string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
+                        certificateModel.AddNewUserCertificate(certiLink, ccNumber, finishedDate, studentId, ccVnName);
                     }
                     doc.Close();
                 }
@@ -219,7 +225,7 @@ namespace Template_certificate
                 }
         }
 
-        private void UploadFileToGoogleDrive(string studentName, string studentId, string ccNumber, string filePath, DriveService service)
+        private string UploadFileToGoogleDrive(string studentName, string studentId, string ccNumber, string filePath, DriveService service)
         {
             Connect connect = new Connect();
 
@@ -245,6 +251,8 @@ namespace Template_certificate
             }
 
             connect.CreateNewFile(folderId, service, filePath, $"{studentId}-{ccNumber}-{studentName}.pdf");
+
+            return connect.FileId;
         }
     }
 }

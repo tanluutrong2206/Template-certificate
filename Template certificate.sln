@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Template certificate", "Tem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test upload file to Google Drive", "..\..\Test upload file to Google Drive\Test upload file to Google Drive\Test upload file to Google Drive.csproj", "{2EF0FF27-6D28-41A5-B3AD-F861347FE0AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connect To MySql", "Connect To MySql\Connect To MySql.csproj", "{BD4D76E6-08A5-43CA-B578-470B5E1BCE2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2EF0FF27-6D28-41A5-B3AD-F861347FE0AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EF0FF27-6D28-41A5-B3AD-F861347FE0AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EF0FF27-6D28-41A5-B3AD-F861347FE0AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD4D76E6-08A5-43CA-B578-470B5E1BCE2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD4D76E6-08A5-43CA-B578-470B5E1BCE2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD4D76E6-08A5-43CA-B578-470B5E1BCE2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD4D76E6-08A5-43CA-B578-470B5E1BCE2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

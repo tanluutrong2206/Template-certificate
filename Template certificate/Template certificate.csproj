@@ -202,6 +202,10 @@
       <Project>{2ef0ff27-6d28-41a5-b3ad-f861347fe0ad}</Project>
       <Name>Test upload file to Google Drive</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Connect To MySql\Connect To MySql.csproj">
+      <Project>{bd4d76e6-08a5-43ca-b578-470b5e1bce2a}</Project>
+      <Name>Connect To MySql</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
