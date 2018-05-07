@@ -124,7 +124,6 @@ namespace Template_certificate
                     string studentId = row.Cells["Mã sinh viên"].Value.ToString();
 
                     DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
-                    string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
                     string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim().Replace("Chứng chỉ ", "").Trim();
                     ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
@@ -132,7 +131,7 @@ namespace Template_certificate
                     string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                     string ccNumber = row.Cells["Số CC"].Value.ToString();
 
-                    GeneratePdf(studentName, studentId, finishedDate, ccVnName, ccEnName, ccNumber, folderStoragePath, e);
+                    GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, e);
                     count++;
 
                     worker.ReportProgress(count);
@@ -168,7 +167,7 @@ namespace Template_certificate
             }
         }
 
-        private void GeneratePdf(string studentName, string studentId, string finishedDate, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, DoWorkEventArgs ev)
+        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, DoWorkEventArgs ev)
         {
             CertificateModel certificateModel = new CertificateModel();
 
@@ -179,6 +178,7 @@ namespace Template_certificate
             else
                 try
                 {
+                    string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
                     string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
                     //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
                     string filePath = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
@@ -215,7 +215,7 @@ namespace Template_certificate
                         string fileId = UploadFileToGoogleDrive(studentName, studentId, ccNumber, filePath, service);
 
                         string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
-                        certificateModel.AddNewUserCertificate(certiLink, ccNumber, finishedDate, studentId, ccVnName);
+                        certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
                     }
                     doc.Close();
                 }

@@ -15,13 +15,13 @@ namespace Connect_To_MySql
             dbConnect = new DbConnect();
         }
 
-        public void AddNewUserCertificate(string certiLink, string certiCode, string dateFinished, string studentId, string courseName)
+        public void AddNewUserCertificate(string certiLink, string certiCode, DateTime dateFinished, string studentId, string courseEnName)
         {
-            string userId = GetUserId(studentId);
-            int? courseId = GetCourseId(courseName);
+            int? userId = GetUserId(studentId);
+            int? courseId = GetCourseId(courseEnName);
 
             MySqlConnection connection = dbConnect.GetConnection();
-            MySqlCommand command = new MySqlCommand("INSERT INTO `funix_certification`.`user_cc` VALUES (@user_id, @cc_id, @date_issued, @cc_link, @cc_code);", connection);
+            MySqlCommand command = new MySqlCommand("INSERT INTO `funix_certification`.`user_cc`(`user_id`, `cc_id`, `date_issued`, `cc_link`, `cc_code`) VALUES (@user_id, @cc_id, @date_issued, @cc_link, @cc_code);", connection);
             command.Parameters.AddWithValue("@user_id", userId);
             command.Parameters.AddWithValue("@cc_id", courseId);
             command.Parameters.AddWithValue("@date_issued", dateFinished);
@@ -36,26 +36,26 @@ namespace Connect_To_MySql
 
         //THis method cant return correct courseId because the name of course in english and vietnamese
         //is not match with name in excel file
-        private int? GetCourseId(string courseName)
+        private int? GetCourseId(string courseEnName)
         {
             int? courseId = null;
             MySqlConnection connection = dbConnect.GetConnection();
-            MySqlCommand command = new MySqlCommand("SELECT * FROM funix_certification.course where course_name_vn like @courseName;", connection);
-            command.Parameters.AddWithValue("@courseName", courseName);
+            MySqlCommand command = new MySqlCommand("SELECT * FROM certification where cc_name = @courseName;", connection);
+            command.Parameters.AddWithValue("@courseName", courseEnName);
             command.Prepare();
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                courseId = Convert.ToInt32(reader.GetString("course_id"));
+                courseId = Convert.ToInt32(reader.GetString("cc_id"));
             }
 
             dbConnect.CloseConnection(connection);
             return courseId;
         }
 
-        private string GetUserId(string studentId)
+        private int? GetUserId(string studentId)
         {
-            string userId = null;
+            int? userId = null;
             MySqlConnection connection = dbConnect.GetConnection();
             MySqlCommand command = new MySqlCommand("select * from user where user.user_student_code=@studentId;", connection);
             command.Parameters.AddWithValue("@studentId", studentId);
@@ -63,7 +63,7 @@ namespace Connect_To_MySql
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                userId = reader.GetString("user_id");
+                userId = Convert.ToInt32(reader.GetString("user_id"));
             }
 
             dbConnect.CloseConnection(connection);
