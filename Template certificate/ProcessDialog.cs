@@ -230,12 +230,13 @@ namespace Template_certificate
             Connect connect = new Connect();
 
             //get list of all folders
-            var files = connect.retrieveAllFolders(service);
+            string folderParentId = "";
+            var files = connect.RetrieveAllFolders(service, folderParentId);
 
             //The pattern of folder name. It is fixed
             string folderName = $"{studentId}_{studentName}";
 
-            string folderParentId = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME)).Id;
+            folderParentId = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME)).Id;
             //finding folder in list of all folder
             var folder = files.SingleOrDefault(f => f.Name.Equals(folderName));
 
@@ -250,9 +251,15 @@ namespace Template_certificate
                 folderId = folder.Id;
             }
 
-            connect.CreateNewFile(folderId, service, filePath, $"{studentId}-{ccNumber}-{studentName}.pdf");
-
-            return connect.FileId;
+            //get all pdfs file inside folder
+            files = connect.RetrieveAllPdfFileDirectoryFolders(service, folderId);
+            var fileName = $"{studentId}-{ccNumber}-{studentName}.pdf";
+            if (files.SingleOrDefault(f => f.Name.Equals(fileName)) == null)
+            {
+                connect.CreateNewFile(folderId, service, filePath, fileName);
+                return connect.FileId;
+            }
+            else return files.SingleOrDefault(f => f.Name.Equals(fileName)).Id;
         }
     }
 }

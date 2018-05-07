@@ -33,9 +33,6 @@ namespace Connect_To_MySql
             dbConnect.CloseConnection(connection);
         }
 
-
-        //THis method cant return correct courseId because the name of course in english and vietnamese
-        //is not match with name in excel file
         private int? GetCourseId(string courseEnName)
         {
             int? courseId = null;
