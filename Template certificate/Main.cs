@@ -27,7 +27,7 @@ namespace Template_certificate
         private CheckBox headerCheckBox = new CheckBox();
         private string connectionString = null;
         private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
-        private bool selectedFolder = false, selectedFile = false;
+        private bool selectedFile = false;
 
         private enum comparison
         {
@@ -75,12 +75,9 @@ namespace Template_certificate
                 groupBox1.Enabled = true;
                 selectedFile = true;
 
-                if (selectedFolder && selectedFile)
-                {
-                    renderPdfBtn.Enabled = true;
-                }
                 if (selectedFile)
                 {
+                    renderPdfBtn.Enabled = true;
                     renderAndUploadBtn.Enabled = true;
                 }
                 //auto selected all row
@@ -238,11 +235,6 @@ namespace Template_certificate
                 //user selected folder
                 //set folder path to text box
                 folderPath.Text = folderBrowserDialog1.SelectedPath;
-                selectedFolder = true;
-                if (selectedFolder && selectedFile)
-                {
-                    renderPdfBtn.Enabled = true;
-                }
             }
         }
 

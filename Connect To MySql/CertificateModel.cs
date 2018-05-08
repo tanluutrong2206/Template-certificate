@@ -66,5 +66,22 @@ namespace Connect_To_MySql
             dbConnect.CloseConnection(connection);
             return userId;
         }
+
+        public string GetCcCode(string ccEnName)
+        {
+            string ccCode = null;
+            MySqlConnection connection = dbConnect.GetConnection();
+            MySqlCommand command = new MySqlCommand("SELECT * FROM certification where cc_name = @courseName;", connection);
+            command.Parameters.AddWithValue("@courseName", ccEnName);
+            command.Prepare();
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                ccCode = reader.GetString("cc_code").ToString();
+            }
+
+            dbConnect.CloseConnection(connection);
+            return ccCode;
+        }
     }
 }

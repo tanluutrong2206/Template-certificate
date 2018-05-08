@@ -24,7 +24,8 @@ namespace Template_certificate
         private string folderStoragePath;
         private readonly DataGridView dataGridView1;
         private readonly Main _owner;
-        private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
+        private readonly string contentHtml = File.ReadAllText(Path.Combine(Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")),"Html source\\certificate template.html"));
+        
         private DriveService service;
         private bool _upload = false;
         public bool Upload
@@ -56,7 +57,6 @@ namespace Template_certificate
         private readonly int total;
         private const string MASTER_FOLDER_NAME = "MindMeister";
         private string ApplicationName = "Funix's Certificate Generation Automatical";
-        private bool deleteAfterGenerate = false;
 
         public ProcessDialog(Main owner)
         {
@@ -117,41 +117,46 @@ namespace Template_certificate
             int count = 0;
             if (string.IsNullOrEmpty(folderStoragePath))
             {
-                string credPath = Environment.GetFolderPath(
-            Environment.SpecialFolder.Personal);
-                credPath = Path.Combine(credPath, ".funix-certificate/generate-pdf");
-                deleteAfterGenerate = true;
-                folderStoragePath = credPath;
+                string exePath = Application.ExecutablePath;
+                folderStoragePath = Path.Combine(exePath.Remove(exePath.LastIndexOf('\\')),"funix-certificate");
             }
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            try
             {
-                //check if row has checked in check box
-                if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value) && backgroundWorker1.WorkerSupportsCancellation)
+                foreach (DataGridViewRow row in dataGridView1.Rows)
                 {
-                    //render this row to pdf
-                    string studentName = row.Cells["Họ và tên"].Value.ToString();
-                    string studentId = row.Cells["Mã sinh viên"].Value.ToString();
+                    //check if row has checked in check box
+                    if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value) && backgroundWorker1.WorkerSupportsCancellation)
+                    {
+                        //render this row to pdf
+                        string studentName = row.Cells["Họ và tên"].Value.ToString();
+                        string studentId = row.Cells["Mã sinh viên"].Value.ToString();
 
-                    DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
+                        DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
 
-                    string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim().Replace("Chứng chỉ ", "").Trim();
-                    ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
+                        string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim().Replace("Chứng chỉ ", "").Trim();
+                        ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
 
-                    string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
-                    string ccNumber = row.Cells["Số CC"].Value.ToString();
+                        string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
+                        string ccNumber = row.Cells["Số CC"].Value.ToString();
+                        string ccCode = new CertificateModel().GetCcCode(ccEnName);
 
-                    GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, e);
-                    count++;
+                        GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, e);
+                        count++;
 
-                    worker.ReportProgress(count);
+                        worker.ReportProgress(count);
+                    }
                 }
+                MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            if (!deleteAfterGenerate)
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                backgroundWorker1.CancelAsync();
+            }
+            finally
             {
                 Process.Start(folderStoragePath);
             }
-            //e.Result = _owner.renderPdfBtn_Click((int)e.Argument, worker, e);
         }
 
         // This event handler updates the progress.
@@ -179,22 +184,23 @@ namespace Template_certificate
             }
         }
 
-        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, DoWorkEventArgs ev)
+        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, string ccCode, DoWorkEventArgs ev)
         {
             CertificateModel certificateModel = new CertificateModel();
-
+            string filePath = null;
             if (backgroundWorker1.CancellationPending)
             {
                 ev.Cancel = true;
             }
             else
+
                 try
                 {
                     string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
                     string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
                     //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
 
-                    string filePath = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
+                    filePath = $"{folderStoragePath.Replace("\\", "/")}/{ccNumber}-{ccCode}-{studentName}.pdf";
 
                     string html = string.Format(contentHtml, parameters);
                     // define a rendering result object
@@ -226,24 +232,19 @@ namespace Template_certificate
 
                     if (Upload)
                     {
-                        string fileId = UploadFileToGoogleDrive(studentName, studentId, ccNumber, filePath, service);
+                        string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service);
 
                         string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
                         certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
                     }
-
-                    if (deleteAfterGenerate)
-                    {
-                        File.Delete(filePath);
-                    }
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.Message, "Some things went wrong", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw e;
                 }
         }
 
-        private string UploadFileToGoogleDrive(string studentName, string studentId, string ccNumber, string filePath, DriveService service)
+        private string UploadFileToGoogleDrive(string studentName, string ccNumber, string ccCode, string filePath, DriveService service)
         {
             Connect connect = new Connect();
 
@@ -252,7 +253,7 @@ namespace Template_certificate
             var files = connect.RetrieveAllFolders(service, folderParentId);
 
             //The pattern of folder name. It is fixed
-            string folderName = $"{studentId}_{studentName}";
+            string folderName = $"{ccNumber}_{studentName}";
 
             folderParentId = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME)).Id;
             //finding folder in list of all folder
@@ -271,7 +272,7 @@ namespace Template_certificate
 
             //get all pdfs file inside folder
             files = connect.RetrieveAllPdfFileDirectoryFolders(service, folderId);
-            var fileName = $"{studentId}-{ccNumber}-{studentName}.pdf";
+            var fileName = $"{ccNumber} - {ccCode} - {studentName}.pdf";
             if (files.SingleOrDefault(f => f.Name.Equals(fileName)) == null)
             {
                 connect.CreateNewFile(folderId, service, filePath, fileName);
