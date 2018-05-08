@@ -353,6 +353,7 @@
             // 
             // renderAndUploadBtn
             // 
+            this.renderAndUploadBtn.Enabled = false;
             this.renderAndUploadBtn.Location = new System.Drawing.Point(329, 454);
             this.renderAndUploadBtn.Name = "renderAndUploadBtn";
             this.renderAndUploadBtn.Size = new System.Drawing.Size(116, 23);

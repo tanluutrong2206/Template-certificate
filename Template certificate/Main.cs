@@ -79,6 +79,10 @@ namespace Template_certificate
                 {
                     renderPdfBtn.Enabled = true;
                 }
+                if (selectedFile)
+                {
+                    renderAndUploadBtn.Enabled = true;
+                }
                 //auto selected all row
                 headerCheckBox.Checked = true;
                 HeaderCheckBox_Clicked(null, null);

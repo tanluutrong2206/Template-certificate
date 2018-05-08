@@ -21,7 +21,7 @@ namespace Template_certificate
 {
     public partial class ProcessDialog : Form
     {
-        private readonly string folderStoragePath;
+        private string folderStoragePath;
         private readonly DataGridView dataGridView1;
         private readonly Main _owner;
         private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
@@ -56,6 +56,7 @@ namespace Template_certificate
         private readonly int total;
         private const string MASTER_FOLDER_NAME = "MindMeister";
         private string ApplicationName = "Funix's Certificate Generation Automatical";
+        private bool deleteAfterGenerate = false;
 
         public ProcessDialog(Main owner)
         {
@@ -114,6 +115,14 @@ namespace Template_certificate
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             int count = 0;
+            if (string.IsNullOrEmpty(folderStoragePath))
+            {
+                string credPath = Environment.GetFolderPath(
+            Environment.SpecialFolder.Personal);
+                credPath = Path.Combine(credPath, ".funix-certificate/generate-pdf");
+                deleteAfterGenerate = true;
+                folderStoragePath = credPath;
+            }
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
                 //check if row has checked in check box
@@ -138,7 +147,10 @@ namespace Template_certificate
                 }
             }
             MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            Process.Start(folderStoragePath);
+            if (!deleteAfterGenerate)
+            {
+                Process.Start(folderStoragePath);
+            }
             //e.Result = _owner.renderPdfBtn_Click((int)e.Argument, worker, e);
         }
 
@@ -181,6 +193,7 @@ namespace Template_certificate
                     string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
                     string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
                     //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
+
                     string filePath = $"{folderStoragePath.Replace("\\", "/")}/{studentId}-{ccNumber}-{studentName}.pdf";
 
                     string html = string.Format(contentHtml, parameters);
@@ -209,6 +222,7 @@ namespace Template_certificate
                     PdfDocument doc = converter.ConvertHtmlString(html);
 
                     doc.Save(filePath);
+                    doc.Close();
 
                     if (Upload)
                     {
@@ -217,7 +231,11 @@ namespace Template_certificate
                         string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
                         certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
                     }
-                    doc.Close();
+
+                    if (deleteAfterGenerate)
+                    {
+                        File.Delete(filePath);
+                    }
                 }
                 catch (Exception e)
                 {
