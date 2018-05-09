@@ -15,7 +15,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Test_upload_file_to_Google_Drive;
 
 namespace Template_certificate
 {
@@ -197,7 +196,7 @@ namespace Template_certificate
                 try
                 {
                     string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
-                    string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate };
+                    string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate, Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")).Replace("\\","/") };
                     //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
 
                     filePath = $"{folderStoragePath.Replace("\\", "/")}/{ccNumber}-{ccCode}-{studentName}.pdf";
