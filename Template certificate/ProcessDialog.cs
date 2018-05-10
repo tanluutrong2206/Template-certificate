@@ -54,7 +54,7 @@ namespace Template_certificate
             }
         }
         private readonly int total;
-        private const string MASTER_FOLDER_NAME = "MindMeister";
+        private const string MASTER_FOLDER_NAME = "Chứng chỉ Funix";
         private string ApplicationName = "Funix's Certificate Generation Automatical";
 
         public ProcessDialog(Main owner)
@@ -124,7 +124,7 @@ namespace Template_certificate
                 foreach (DataGridViewRow row in dataGridView1.Rows)
                 {
                     //check if row has checked in check box
-                    if (Convert.ToBoolean(row.Cells["checkBoxColumn"].Value) && backgroundWorker1.WorkerSupportsCancellation)
+                    if (!backgroundWorker1.CancellationPending && Convert.ToBoolean(row.Cells["checkBoxColumn"].Value))
                     {
                         //render this row to pdf
                         string studentName = row.Cells["Họ và tên"].Value.ToString();
@@ -143,6 +143,10 @@ namespace Template_certificate
                         count++;
 
                         worker.ReportProgress(count);
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
                 MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -231,7 +235,7 @@ namespace Template_certificate
 
                     if (Upload)
                     {
-                        string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service);
+                        string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
 
                         string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
                         certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
@@ -243,7 +247,7 @@ namespace Template_certificate
                 }
         }
 
-        private string UploadFileToGoogleDrive(string studentName, string ccNumber, string ccCode, string filePath, DriveService service)
+        private string UploadFileToGoogleDrive(string studentName, string ccNumber, string ccCode, string filePath, DriveService service, string studentId)
         {
             Connect connect = new Connect();
 
@@ -252,9 +256,20 @@ namespace Template_certificate
             var files = connect.RetrieveAllFolders(service, folderParentId);
 
             //The pattern of folder name. It is fixed
-            string folderName = $"{ccNumber}_{studentName}";
+            string folderName = $"{studentId}_{studentName}";
 
-            folderParentId = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME)).Id;
+            var folderParent = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME));
+
+            if (folderParent == null)
+            {
+                folderParentId = connect.CreateNewFolder(folderParentId, service, MASTER_FOLDER_NAME);
+            }
+            else
+            {
+                folderParentId = folderParent.Id;
+            }
+
+            files = connect.RetrieveAllFolders(service, folderParentId);
             //finding folder in list of all folder
             var folder = files.SingleOrDefault(f => f.Name.Equals(folderName));
 
