@@ -25,7 +25,6 @@ namespace Template_certificate
         private string Excel07ConString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties='Excel 12.0;HDR=YES'";
         private CheckBox headerCheckBox = new CheckBox();
         private string connectionString = null;
-        private readonly string contentHtml = File.ReadAllText("C:\\Generate certificate\\Html source\\certificate template.html");
         private bool selectedFile = false;
 
         private enum comparison
