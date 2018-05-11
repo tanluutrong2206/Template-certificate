@@ -67,6 +67,8 @@ namespace Template_certificate
             dataGridView1 = _owner.GetDataGridView();
             total = GetTotalSelectedRow();
             resultLabel.Text = $"Processing: 0/{total}";
+
+            StartAsync();
         }
 
         private int GetTotalSelectedRow()
@@ -144,10 +146,7 @@ namespace Template_certificate
 
                         worker.ReportProgress(count);
                     }
-                    else
-                    {
-                        break;
-                    }
+                    
                 }
                 MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -196,7 +195,6 @@ namespace Template_certificate
                 ev.Cancel = true;
             }
             else
-
                 try
                 {
                     string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
@@ -214,12 +212,6 @@ namespace Template_certificate
                     converter.Options.PdfPageSize = PdfPageSize.A4;
                     converter.Options.DrawBackground = true;
                     converter.Options.EmbedFonts = true;
-                    //following margin make content in center of page
-
-                    //white out line very thin
-                    //converter.Options.MarginLeft = -15;
-                    //converter.Options.MarginRight = -15;
-                    //converter.Options.MarginTop = -5;
 
                     //white outline half of cm
                     converter.Options.MarginLeft = -7;
@@ -235,10 +227,17 @@ namespace Template_certificate
 
                     if (Upload)
                     {
-                        string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
+                        if (backgroundWorker1.CancellationPending)
+                        {
+                            ev.Cancel = true;
+                        }
+                        else
+                        {
+                            string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
 
-                        string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
-                        certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
+                            string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
+                            certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -258,7 +257,7 @@ namespace Template_certificate
             //The pattern of folder name. It is fixed
             string folderName = $"{studentId}_{studentName}";
 
-            var folderParent = files.SingleOrDefault(f => f.Name.Contains(MASTER_FOLDER_NAME));
+            var folderParent = files.SingleOrDefault(f => f.Name.Equals(MASTER_FOLDER_NAME));
 
             if (folderParent == null)
             {

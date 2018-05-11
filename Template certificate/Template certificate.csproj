@@ -33,7 +33,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>C:\Users\tanlu\Desktop\New folder\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -42,7 +42,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>C:\Generate certificate\</OutputPath>
+    <OutputPath>C:\Users\tanlu\Desktop\New folder\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -202,6 +202,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Driver\AccessDatabaseEngine.exe" />
+    <Content Include="Driver\Net FrameWork 461 32 86 EN.exe" />
     <Content Include="Html source\certificate template.html" />
     <Content Include="Html source\mystyle.css" />
     <Content Include="Images\background.png" />

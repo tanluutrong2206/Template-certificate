@@ -557,18 +557,15 @@ namespace Template_certificate
 
         private void renderPdfBtn_Click(object sender, EventArgs e)
         {
-            string folderStoragePath = folderPath.Text;
             ProcessDialog dialog = new ProcessDialog(this);
-            dialog.Show();
-            dialog.StartAsync();
+            dialog.ShowDialog();
         }
 
         private void renderAndUploadBtn_Click(object sender, EventArgs e)
         {
             ProcessDialog dialog = new ProcessDialog(this);
             dialog.Upload = true;
-            dialog.Show();
-            dialog.StartAsync();
+            dialog.ShowDialog();
         }
     }
 }
