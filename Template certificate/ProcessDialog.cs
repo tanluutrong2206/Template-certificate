@@ -131,6 +131,7 @@ namespace Template_certificate
                         //render this row to pdf
                         string studentName = row.Cells["Họ và tên"].Value.ToString();
                         string studentId = row.Cells["Mã sinh viên"].Value.ToString();
+                        string email = row.Cells["Email"].Value.ToString();
 
                         DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
 
@@ -141,7 +142,7 @@ namespace Template_certificate
                         string ccNumber = row.Cells["Số CC"].Value.ToString();
                         string ccCode = new CertificateModel().GetCcCode(ccEnName);
 
-                        GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, e);
+                        GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, email, e);
                         count++;
 
                         worker.ReportProgress(count);
@@ -186,7 +187,7 @@ namespace Template_certificate
             }
         }
 
-        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, string ccCode, DoWorkEventArgs ev)
+        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, string ccCode, string email, DoWorkEventArgs ev)
         {
             CertificateModel certificateModel = new CertificateModel();
             string filePath = null;
@@ -236,7 +237,7 @@ namespace Template_certificate
                             string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
 
                             string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
-                            certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName);
+                            certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName, email, studentName);
                         }
                     }
                 }
@@ -286,12 +287,14 @@ namespace Template_certificate
             //get all pdfs file inside folder
             files = connect.RetrieveAllPdfFileDirectoryFolders(service, folderId);
             var fileName = $"{ccNumber} - {ccCode} - {studentName}.pdf";
-            if (files.SingleOrDefault(f => f.Name.Equals(fileName)) == null)
+            var file = files.SingleOrDefault(f => f.Name.Equals(fileName));
+            if (file != null)
             {
-                connect.CreateNewFile(folderId, service, filePath, fileName);
-                return connect.FileId;
+                //TODO: if had certificate file in google drive, override it
+                connect.DeleteFile(service, file.Id);
             }
-            else return files.SingleOrDefault(f => f.Name.Equals(fileName)).Id;
+            connect.CreateNewFile(folderId, service, filePath, fileName);
+            return connect.FileId;
         }
     }
 }
