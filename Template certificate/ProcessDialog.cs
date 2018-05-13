@@ -23,8 +23,8 @@ namespace Template_certificate
         private string folderStoragePath;
         private readonly DataGridView dataGridView1;
         private readonly Main _owner;
-        private readonly string contentHtml = File.ReadAllText(Path.Combine(Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")),"Html source\\certificate template.html"));
-        
+        private readonly string contentHtml = File.ReadAllText(Path.Combine(Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")), "Html source\\certificate template.html"));
+
         private DriveService service;
         private bool _upload = false;
         public bool Upload
@@ -119,7 +119,7 @@ namespace Template_certificate
             if (string.IsNullOrEmpty(folderStoragePath))
             {
                 string exePath = Application.ExecutablePath;
-                folderStoragePath = Path.Combine(exePath.Remove(exePath.LastIndexOf('\\')),"funix-certificate");
+                folderStoragePath = Path.Combine(exePath.Remove(exePath.LastIndexOf('\\')), "funix-certificate");
             }
             try
             {
@@ -147,7 +147,7 @@ namespace Template_certificate
 
                         worker.ReportProgress(count);
                     }
-                    
+
                 }
                 MessageBox.Show("Generate successfull", "Successfull", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -199,7 +199,7 @@ namespace Template_certificate
                 try
                 {
                     string finishedDate = date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
-                    string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate, Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")).Replace("\\","/") };
+                    string[] parameters = { studentName, ccVnName, ccEnName, ccNumber, finishedDate, Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")).Replace("\\", "/") };
                     //string filename = "E:/Funix/Template certificate/certificate template 1.pdf";
 
                     filePath = $"{folderStoragePath.Replace("\\", "/")}/{ccNumber}-{ccCode}-{studentName}.pdf";
@@ -287,12 +287,14 @@ namespace Template_certificate
             //get all pdfs file inside folder
             files = connect.RetrieveAllPdfFileDirectoryFolders(service, folderId);
             var fileName = $"{ccNumber} - {ccCode} - {studentName}.pdf";
-            var file = files.SingleOrDefault(f => f.Name.Equals(fileName));
-            if (file != null)
+            var filesExist = files.FindAll(f => f.Name.Equals(fileName));
+            foreach (var file in filesExist)
             {
                 //TODO: if had certificate file in google drive, override it
+                //Move file to trash
                 connect.DeleteFile(service, file.Id);
             }
+
             connect.CreateNewFile(folderId, service, filePath, fileName);
             return connect.FileId;
         }
