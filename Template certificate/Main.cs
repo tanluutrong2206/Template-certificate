@@ -112,7 +112,8 @@ namespace Template_certificate
 
         private void displayExcelContentToGridView(string fileName)
         {
-            dataGridView1.DataSource = null;
+            dataGridView1.Columns.Clear();
+            dataGridView1.Refresh();
             if (Path.GetExtension(fileName).Equals(".xls"))
             {
                 //excel old version. Before 2007
@@ -142,21 +143,30 @@ namespace Template_certificate
                 dataGridView1.Controls.Add(headerCheckBox);
 
                 //Add a CheckBox Column to the DataGridView at the first position.
-                DataGridViewCheckBoxColumn checkBoxColumn = new DataGridViewCheckBoxColumn();
-                checkBoxColumn.HeaderText = "";
-                checkBoxColumn.Width = 30;
-                checkBoxColumn.Name = "checkBoxColumn";
+                DataGridViewCheckBoxColumn checkBoxColumn = CreateCheckBoxColumn();
+
                 dataGridView1.Columns.Insert(0, checkBoxColumn);
                 this.dataGridView1.Columns["checkBoxColumn"].Frozen = true;
+
                 //Assign Click event to the DataGridView Cell.
                 dataGridView1.CellContentClick += new DataGridViewCellEventHandler(DataGridView_CellClick);
-
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
+        }
+
+        private DataGridViewCheckBoxColumn CreateCheckBoxColumn()
+        {
+            DataGridViewCheckBoxColumn checkBoxColumn =  new DataGridViewCheckBoxColumn();
+            checkBoxColumn.HeaderText = "";
+            checkBoxColumn.Width = 30;
+            checkBoxColumn.Name = "checkBoxColumn";
+            checkBoxColumn.Resizable = DataGridViewTriState.False;
+
+            return checkBoxColumn;
         }
 
         private void setDataSourceForGridView(string query)
