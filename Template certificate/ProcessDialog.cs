@@ -25,6 +25,7 @@ namespace Template_certificate
         private readonly Main _owner;
         private readonly string contentHtml = File.ReadAllText(Path.Combine(Application.ExecutablePath.Remove(Application.ExecutablePath.LastIndexOf("\\")), "Html source\\certificate template.html"));
 
+        public string masterFolderId { get; set; }
         private DriveService service;
         private bool _upload = false;
         public bool Upload
@@ -49,6 +50,8 @@ namespace Template_certificate
 
                     //set timeout
                     service.HttpClient.Timeout = TimeSpan.FromMinutes(10);
+
+                    masterFolderId = GetMasterFolderId(service);
                 }
                 _upload = value;
             }
@@ -115,6 +118,8 @@ namespace Template_certificate
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
+            SelectPdf.HtmlToPdf converter = InitConverter();
+
             int count = 0;
             if (string.IsNullOrEmpty(folderStoragePath))
             {
@@ -142,7 +147,7 @@ namespace Template_certificate
                         string ccNumber = row.Cells["Số CC"].Value.ToString();
                         string ccCode = new CertificateModel().GetCcCode(ccEnName);
 
-                        GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, email, e);
+                        GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, email, e, converter);
                         count++;
 
                         worker.ReportProgress(count);
@@ -187,7 +192,7 @@ namespace Template_certificate
             }
         }
 
-        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, string ccCode, string email, DoWorkEventArgs ev)
+        private void GeneratePdf(string studentName, string studentId, DateTime date, string ccVnName, string ccEnName, string ccNumber, string folderStoragePath, string ccCode, string email, DoWorkEventArgs ev, SelectPdf.HtmlToPdf converter)
         {
             CertificateModel certificateModel = new CertificateModel();
             string filePath = null;
@@ -206,40 +211,13 @@ namespace Template_certificate
 
                     string html = string.Format(contentHtml, parameters);
                     // define a rendering result object
-                    SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-
-                    //setting up rendering
-                    converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
-                    converter.Options.PdfPageSize = PdfPageSize.A4;
-                    converter.Options.DrawBackground = true;
-                    converter.Options.EmbedFonts = true;
-
-                    //white outline half of cm
-                    converter.Options.MarginLeft = -7;
-                    converter.Options.MarginRight = -10;
-
-                    converter.Options.AutoFitHeight = HtmlToPdfPageFitMode.AutoFit;
-                    converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
 
                     PdfDocument doc = converter.ConvertHtmlString(html);
 
                     doc.Save(filePath);
                     doc.Close();
 
-                    if (Upload)
-                    {
-                        if (backgroundWorker1.CancellationPending)
-                        {
-                            ev.Cancel = true;
-                        }
-                        else
-                        {
-                            string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
-
-                            string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
-                            certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName, email, studentName);
-                        }
-                    }
+                    UploadFileToGoogleDrive(studentName, studentId, date, ccEnName, ccNumber, ccCode, email, filePath, ev);
                 }
                 catch (Exception e)
                 {
@@ -247,45 +225,66 @@ namespace Template_certificate
                 }
         }
 
+        private HtmlToPdf InitConverter()
+        {
+            // define a rendering result object
+            SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
+
+            //setting up rendering
+            converter.Options.PdfPageOrientation = PdfPageOrientation.Landscape;
+            converter.Options.PdfPageSize = PdfPageSize.A4;
+            converter.Options.DrawBackground = true;
+            converter.Options.EmbedFonts = true;
+
+            //white outline half of cm
+            converter.Options.MarginLeft = -7;
+            converter.Options.MarginRight = -10;
+
+            converter.Options.AutoFitHeight = HtmlToPdfPageFitMode.AutoFit;
+            converter.Options.AutoFitWidth = HtmlToPdfPageFitMode.AutoFit;
+
+            return converter;
+        }
+
+        private void UploadFileToGoogleDrive(string studentName, string studentId, DateTime date, string ccEnName, string ccNumber, string ccCode, string email, string filePath, DoWorkEventArgs ev)
+        {
+            CertificateModel certificateModel = new CertificateModel();
+
+            if (Upload)
+            {
+                if (backgroundWorker1.CancellationPending)
+                {
+                    ev.Cancel = true;
+                }
+                else
+                {
+                    string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
+
+                    string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
+
+                    if (!certificateModel.CheckCertificateInDatabase(ccNumber))
+                    {
+                        certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName, email, studentName);
+                    }
+                    else
+                    {
+                        certificateModel.UpdateUserCertificate(certiLink, ccNumber, date, studentId, ccEnName, email, studentName);
+                    }
+
+                }
+            }
+        }
+
         private string UploadFileToGoogleDrive(string studentName, string ccNumber, string ccCode, string filePath, DriveService service, string studentId)
         {
             Connect connect = new Connect();
 
-            //get list of all folders
-            string folderParentId = "";
-            var files = connect.RetrieveAllFolders(service, folderParentId);
-
             //The pattern of folder name. It is fixed
             string folderName = $"{studentId}_{studentName}";
-
-            var folderParent = files.SingleOrDefault(f => f.Name.Equals(MASTER_FOLDER_NAME));
-
-            if (folderParent == null)
-            {
-                folderParentId = connect.CreateNewFolder(folderParentId, service, MASTER_FOLDER_NAME);
-            }
-            else
-            {
-                folderParentId = folderParent.Id;
-            }
-
-            files = connect.RetrieveAllFolders(service, folderParentId);
-            //finding folder in list of all folder
-            var folder = files.SingleOrDefault(f => f.Name.Equals(folderName));
-
-            //if folder not created yet. Create new folder
-            string folderId;
-            if (folder == null)
-            {
-                folderId = connect.CreateNewFolder(folderParentId, service, folderName);
-            }
-            else
-            {
-                folderId = folder.Id;
-            }
+            string folderStudentId = GetStudentFolderId(masterFolderId, folderName, service);
 
             //get all pdfs file inside folder
-            files = connect.RetrieveAllPdfFileDirectoryFolders(service, folderId);
+            var files = connect.RetrieveAllPdfFileDirectoryFolders(service, folderStudentId);
             var fileName = $"{ccNumber} - {ccCode} - {studentName}.pdf";
             var filesExist = files.FindAll(f => f.Name.Equals(fileName));
             foreach (var file in filesExist)
@@ -295,8 +294,52 @@ namespace Template_certificate
                 connect.DeleteFile(service, file.Id);
             }
 
-            connect.CreateNewFile(folderId, service, filePath, fileName);
+            connect.CreateNewFile(folderStudentId, service, filePath, fileName);
             return connect.FileId;
+        }
+
+        private string GetStudentFolderId(string masterFolderId, string folderName, DriveService service)
+        {
+            Connect connect = new Connect();
+
+            var files = connect.RetrieveAllFolders(service, masterFolderId);
+            //finding folder in list of all folder
+            var folder = files.SingleOrDefault(f => f.Name.Equals(folderName));
+
+            //if folder not created yet. Create new folder
+            string folderId;
+            if (folder == null)
+            {
+                folderId = connect.CreateNewFolder(masterFolderId, service, folderName);
+            }
+            else
+            {
+                folderId = folder.Id;
+            }
+
+            return folderId;
+        }
+
+        private string GetMasterFolderId(DriveService service)
+        {
+            Connect connect = new Connect();
+
+            //get list of all folders
+            string masterFolderId = null;
+            var allFolders = connect.RetrieveAllFolders(service, masterFolderId);
+
+            var folderParent = allFolders.SingleOrDefault(f => f.Name.Equals(MASTER_FOLDER_NAME));
+
+            if (folderParent == null)
+            {
+                masterFolderId = connect.CreateNewFolder(masterFolderId, service, MASTER_FOLDER_NAME);
+            }
+            else
+            {
+                masterFolderId = folderParent.Id;
+            }
+
+            return masterFolderId;
         }
     }
 }
