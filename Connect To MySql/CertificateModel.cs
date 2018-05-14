@@ -34,7 +34,7 @@ namespace Connect_To_MySql
             command.Parameters.AddWithValue("@cc_code", certiCode);
             command.Prepare();
             command.ExecuteNonQuery();
-            
+
             dbConnect.CloseConnection(connection);
         }
 
@@ -91,7 +91,7 @@ namespace Connect_To_MySql
             {
                 userId = Convert.ToInt32(reader.GetString("user_id"));
             }
-            
+
             dbConnect.CloseConnection(connection);
             return userId;
         }
@@ -111,6 +111,41 @@ namespace Connect_To_MySql
 
             dbConnect.CloseConnection(connection);
             return ccCode;
+        }
+
+        public bool CheckCertificateInDatabase(string ccNumber)
+        {
+            MySqlConnection connection = dbConnect.GetConnection();
+            MySqlCommand command = new MySqlCommand("SELECT * FROM user_cc where cc_code = @ccNumber;", connection);
+            command.Parameters.AddWithValue("@ccNumber", ccNumber);
+            var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public void UpdateUserCertificate(string certiLink, string ccNumber, DateTime date, string studentId, string ccEnName, string email, string studentName)
+        {
+            int? userId = GetUserId(studentId);
+            int? ccId = GetCourseId(ccEnName);
+            MySqlConnection connection = dbConnect.GetConnection();
+            MySqlCommand command = new MySqlCommand(@"UPDATE `funix_certification`.`user_cc`
+                                                        SET
+                                                        `user_id` = @userId,
+                                                        `cc_id` = @ccId,
+                                                        `date_issued` = @date,
+                                                        `cc_link` = @link
+                                                        WHERE `cc_code` = @ccNumber;", connection);
+            command.Parameters.AddWithValue("@userId", userId);
+            command.Parameters.AddWithValue("@ccId", ccId);
+            command.Parameters.AddWithValue("@date", date);
+            command.Parameters.AddWithValue("@link", certiLink);
+            command.Parameters.AddWithValue("@ccNumber", ccNumber);
+            command.Prepare();
+            command.ExecuteNonQuery();
         }
     }
 }
