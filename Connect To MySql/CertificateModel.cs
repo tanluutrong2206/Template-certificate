@@ -126,7 +126,7 @@ namespace Connect_To_MySql
             return ccCode;
         }
 
-        //get subject code fro database by English name of thi subject
+        //get subject code from database by English name of thi subject
         private string GetCourseCode(string ccEnName)
         {
             string courseCode = null;

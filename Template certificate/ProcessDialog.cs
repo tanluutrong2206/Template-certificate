@@ -140,8 +140,12 @@ namespace Template_certificate
 
                         DateTime date = Convert.ToDateTime(row.Cells["Ngày hoàn thành "].Value);
 
-                        string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim().Replace("Chứng chỉ ", "").Trim();
-                        ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
+                        string ccVnName = row.Cells["Tên chứng chỉ"].Value.ToString().Trim();
+                        if (ccVnName.StartsWith("Chứng chỉ "))
+                        {
+                            ccVnName = ccVnName.Replace("Chứng chỉ ", "").Trim();
+                            ccVnName = char.ToUpper(ccVnName.First()) + ccVnName.Substring(1);
+                        }
 
                         string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                         string ccNumber = row.Cells["Số CC"].Value.ToString();
