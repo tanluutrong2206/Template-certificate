@@ -93,6 +93,7 @@ namespace Connect_To_MySql
             }
 
             dbConnect.CloseConnection(connection);
+
             return userId;
         }
 
@@ -100,17 +101,48 @@ namespace Connect_To_MySql
         {
             string ccCode = null;
             MySqlConnection connection = dbConnect.GetConnection();
-            MySqlCommand command = new MySqlCommand("SELECT * FROM certification where cc_name = @courseName;", connection);
+            MySqlCommand command = new MySqlCommand("SELECT cc_code FROM certification where cc_name = @courseName;", connection);
             command.Parameters.AddWithValue("@courseName", ccEnName);
             command.Prepare();
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                ccCode = reader.GetString("cc_code").ToString();
+                //check if the first column has the value or not(null or not)
+                //default first column because select only cc_code in query
+                //if has value it mean that, that certificate is for course
+                // else it for a subject, so need to get subject code from data base
+                if (!reader.IsDBNull(0))
+                {
+                    ccCode = reader.GetString("cc_code").ToString();
+                }
+                else
+                {
+                    ccCode = GetCourseCode(ccEnName);
+                }
             }
 
             dbConnect.CloseConnection(connection);
+
             return ccCode;
+        }
+
+        //get subject code fro database by English name of thi subject
+        private string GetCourseCode(string ccEnName)
+        {
+            string courseCode = null;
+            MySqlConnection connection = dbConnect.GetConnection();
+            MySqlCommand command = new MySqlCommand("SELECT course_code FROM course where course_name = @courseName;", connection);
+            command.Parameters.AddWithValue("@courseName", ccEnName);
+            command.Prepare();
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                    courseCode = reader.GetString("course_code").ToString();
+            }
+
+            dbConnect.CloseConnection(connection);
+
+            return courseCode;
         }
 
         public bool CheckCertificateInDatabase(string ccNumber)
@@ -130,6 +162,11 @@ namespace Connect_To_MySql
         public void UpdateUserCertificate(string certiLink, string ccNumber, DateTime date, string studentId, string ccEnName, string email, string studentName)
         {
             int? userId = GetUserId(studentId);
+            if (userId == null)
+            {
+                userId = CreateNewStudentUser(email, studentId, studentName);
+            }
+
             int? ccId = GetCourseId(ccEnName);
             MySqlConnection connection = dbConnect.GetConnection();
             MySqlCommand command = new MySqlCommand(@"UPDATE `funix_certification`.`user_cc`
