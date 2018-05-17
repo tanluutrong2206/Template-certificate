@@ -17,7 +17,7 @@ namespace Template_certificate
     public class Connect
     {
         private string[] Scopes = { DriveService.Scope.Drive };
-        public string FileId { get; set; }
+        public string WebViewLink{ get; set; }
 
         public UserCredential GetAuthenication()
         {
@@ -146,7 +146,7 @@ namespace Template_certificate
             using (var stream = new FileStream(filePath, FileMode.Open))
             {
                 request = driveService.Files.Create(fileMetadata, stream, "application/pdf");
-                request.Fields = "id";
+                request.Fields = "id, webViewLink";
                 request.Upload();
             }
 
@@ -158,7 +158,13 @@ namespace Template_certificate
             //https://drive.google.com/file/d/FILE_ID/view?usp=sharing
             //Console.WriteLine($"File link: https://drive.google.com/file/d/{file.Id}/view?usp=sharing");
 
-            FileId = file.Id;
+            Permission permission = new Permission();
+            permission.Role = "reader";
+            permission.Type = "anyone";
+
+            PermissionsResource permissionsResource = new PermissionsResource(driveService);
+            permissionsResource.Create(permission, file.Id).Execute();
+            WebViewLink = file.WebViewLink;
         }
 
         public void DeleteFile(DriveService service, string id)
