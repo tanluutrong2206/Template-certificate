@@ -567,14 +567,13 @@ namespace Template_certificate
 
         private void renderPdfBtn_Click(object sender, EventArgs e)
         {
-            ProcessDialog dialog = new ProcessDialog(this);
+            ProcessDialog dialog = new ProcessDialog(this, false);
             dialog.ShowDialog();
         }
 
         private void renderAndUploadBtn_Click(object sender, EventArgs e)
         {
-            ProcessDialog dialog = new ProcessDialog(this);
-            dialog.Upload = true;
+            ProcessDialog dialog = new ProcessDialog(this, true);
             dialog.ShowDialog();
         }
     }

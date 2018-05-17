@@ -60,10 +60,11 @@ namespace Template_certificate
         private const string MASTER_FOLDER_NAME = "Chứng chỉ Funix";
         private string ApplicationName = "Funix's Certificate Generation Automatical";
 
-        public ProcessDialog(Main owner)
+        public ProcessDialog(Main owner, bool isUpload)
         {
             InitializeComponent();
             this._owner = owner;
+            Upload = isUpload;
 
             backgroundWorker1.WorkerSupportsCancellation = true;
             folderStoragePath = _owner.GetFolderPath();
@@ -130,6 +131,7 @@ namespace Template_certificate
             {
                 foreach (DataGridViewRow row in dataGridView1.Rows)
                 {
+                    //TODO: (Ms.Hồng Anh required) File excel change the column Tên chứng chỉ (tiếng anh) and Chứng chỉ to single column Mã môn.
                     //check if row has checked in check box
                     if (!backgroundWorker1.CancellationPending && Convert.ToBoolean(row.Cells["checkBoxColumn"].Value))
                     {
@@ -262,17 +264,17 @@ namespace Template_certificate
                 }
                 else
                 {
-                    string fileId = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
+                    string webViewLink = UploadFileToGoogleDrive(studentName, ccNumber, ccCode, filePath, service, studentId);
 
-                    string certiLink = $"https://drive.google.com/file/d/{fileId}/view?usp=sharing";
+                    //string certiLink = $"https://drive.google.com/file/d/{webViewLink}/view?usp=sharing";
 
                     if (!certificateModel.CheckCertificateInDatabase(ccNumber))
                     {
-                        certificateModel.AddNewUserCertificate(certiLink, ccNumber, date, studentId, ccEnName, email, studentName);
+                        certificateModel.AddNewUserCertificate(webViewLink, ccNumber, date, studentId, ccEnName, email, studentName);
                     }
                     else
                     {
-                        certificateModel.UpdateUserCertificate(certiLink, ccNumber, date, studentId, ccEnName, email, studentName);
+                        certificateModel.UpdateUserCertificate(webViewLink, ccNumber, date, studentId, ccEnName, email, studentName);
                     }
 
                 }
@@ -299,7 +301,7 @@ namespace Template_certificate
             }
 
             connect.CreateNewFile(folderStudentId, service, filePath, fileName);
-            return connect.FileId;
+            return connect.WebViewLink;
         }
 
         private string GetStudentFolderId(string masterFolderId, string folderName, DriveService service)
