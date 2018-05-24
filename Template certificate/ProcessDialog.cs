@@ -295,7 +295,7 @@ namespace Template_certificate
             var filesExist = files.FindAll(f => f.Name.Equals(fileName));
             foreach (var file in filesExist)
             {
-                //TODO: if had certificate file in google drive, override it
+                //If had certificate file in google drive, override it
                 //Move file to trash
                 connect.DeleteFile(service, file.Id);
             }

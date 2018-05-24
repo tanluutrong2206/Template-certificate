@@ -125,7 +125,8 @@ namespace Template_certificate
             }
             try
             {
-                setDataSourceForGridView("SELECT * From [Sheet1$]");
+                //Check if any of cell is empty will ignore
+                setDataSourceForGridView("SELECT * From [Sheet1$] Where [Mã sinh viên] is not null and [Họ và tên] is not null and [Tên chứng chỉ] is not null and [Ngày hoàn thành ] is not null and [Tên chứng chỉ (tiếng anh)] is not null and [Số CC] is not null");
 
                 //add check box column to data grid view
                 //Add a CheckBox Column to the DataGridView Header Cell.

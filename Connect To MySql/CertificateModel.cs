@@ -38,7 +38,7 @@ namespace Connect_To_MySql
             dbConnect.CloseConnection(connection);
         }
 
-        //TODO: create new student if not found student in database
+        //Create new student if not found student in database
         //default phone is null and rollNumber = 1
         private int? CreateNewStudentUser(string email, string studentId, string studentFullName)
         {
