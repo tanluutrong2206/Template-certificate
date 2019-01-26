@@ -33,7 +33,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>C:\Users\tanlu\Desktop\Funix Certificate\</OutputPath>
+    <OutputPath>.\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -61,7 +61,7 @@
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
@@ -164,6 +164,7 @@
     <Content Include="Html source\mystyle.css" />
     <Content Include="Images\background.png" />
     <Content Include="Images\Funix director sign.png" />
+    <Content Include="Images\funix logo old.png" />
     <Content Include="Images\funix logo.png" />
     <Content Include="README.txt" />
   </ItemGroup>

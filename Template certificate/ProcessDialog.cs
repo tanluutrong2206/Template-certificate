@@ -152,6 +152,7 @@ namespace Template_certificate
                         string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                         string ccNumber = row.Cells["Số CC"].Value.ToString();
                         string ccCode = new CertificateModel().GetCcCode(ccEnName);
+                        //string ccCode = "SWM301";
 
                         GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, email, e, converter);
                         count++;
