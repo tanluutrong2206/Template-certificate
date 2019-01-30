@@ -2,7 +2,7 @@
 .content {
     font-family: roboto;
     text-align: center;
-    padding-top: 190px;
+    padding-top: 195px;
 }
 
 .vn-txt {
@@ -28,13 +28,13 @@
     background-size: cover;
     background-repeat: no-repeat;
     font-family: roboto;
-    /* width: 75%;	 */
+    /* width: 65%;	 */
     padding: 10px 0;
     margin: auto;
 }
 
 .logo-img {
-    padding-top: 90px;
+    padding-top: 85px;
     float: right;
     padding-right: 165px;
     width: 121px;

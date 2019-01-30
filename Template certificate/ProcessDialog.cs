@@ -4,16 +4,11 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using SelectPdf;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Template_certificate
@@ -151,8 +146,8 @@ namespace Template_certificate
 
                         string ccEnName = row.Cells["Tên chứng chỉ (tiếng anh)"].Value.ToString();
                         string ccNumber = row.Cells["Số CC"].Value.ToString();
-                        string ccCode = new CertificateModel().GetCcCode(ccEnName);
-                        //string ccCode = "SWM301";
+                        //string ccCode = new CertificateModel().GetCcCode(ccEnName);
+                        string ccCode = "SWM301";
 
                         GeneratePdf(studentName, studentId, date, ccVnName, ccEnName, ccNumber, folderStoragePath, ccCode, email, e, converter);
                         count++;
